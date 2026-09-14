@@ -1,0 +1,229 @@
+<div class="game-wrapper">
+  <!-- Barra Superior de Estado -->
+  <header class="top-nav">
+    <div class="brand">
+      <span class="brand-glow">THE DRONE TRIVIA BATTLE</span>
+      <span class="brand-sub">CODEARENA 3D</span>
+    </div>
+
+    <div class="room-badges">
+      <div class="badge topic-badge">
+        <span class="badge-label">TEMA</span>
+        <span class="badge-value">{{ techTopic }}</span>
+      </div>
+
+      <div class="badge code-badge">
+        <span class="badge-label">SALA</span>
+        <span class="badge-value">{{ roomCode }}</span>
+      </div>
+
+      <div class="badge status-badge" [class.waiting]="roomState === 'WAITING'">
+        <span class="pulse-dot"></span>
+        <span class="badge-value">{{ roomState }}</span>
+      </div>
+
+      <div class="badge players-badge">
+        <span class="badge-label">DRONES</span>
+        <span class="badge-value">{{ playerCount }}/{{ maxPlayers }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout Principal de Dos Paneles (Boceto PRIMER BORRADOR) -->
+  <main class="main-layout">
+    <!-- Panel Izquierdo: Arena 3D Octogonal y HUD de Drones (~70%) -->
+    <section class="arena-section tech-border" id="arena-panel">
+      <div class="section-tag top-center">SECTOR DE COMBATE // ARENA OCTOGONAL 3D</div>
+      
+      <!-- Escena Three.js montada con sincronización de Mana reactiva -->
+      <div class="arena-viewport-container" id="arena-viewport">
+        <app-arena-scene
+          [initialMana]="hudTopLeft.mana"
+          [roomCode]="roomCode"
+          [localPlayerId]="localPlayerId"
+          [players]="players"
+          [targetedPlayerId]="selectedTargetPlayerId"
+          [isFrozen]="isBoxQuestionActive"
+          (manaChanged)="handleLocalPlayerManaChanged($event)"
+          (remotePlayerManaChanged)="handleRemotePlayerManaChanged($event)"
+          (playerTargeted)="handlePlayerTargeted($event)"
+          (boxClaimed)="handleBoxClaimed($event)"
+        ></app-arena-scene>
+
+        <!-- Capa Overlay 2D: HUD en las 4 esquinas dinámicas -->
+        <div class="arena-hud-overlay">
+          <!-- Jugador Local (Arriba - Izquierda) -> SIEMPRE "Tú" -->
+          <div class="hud-corner top-left">
+            <app-hud-card [player]="hudTopLeft"></app-hud-card>
+          </div>
+
+          <!-- Jugador Remoto 1 (Arriba - Derecha) -->
+          <div class="hud-corner top-right">
+            <app-hud-card [player]="hudTopRight"></app-hud-card>
+          </div>
+
+          <!-- Jugador Remoto 2 (Abajo - Izquierda) -->
+          <div class="hud-corner bottom-left">
+            <app-hud-card [player]="hudBottomLeft"></app-hud-card>
+          </div>
+
+          <!-- Jugador Remoto 3 (Abajo - Derecha) -->
+          <div class="hud-corner bottom-right">
+            <app-hud-card [player]="hudBottomRight"></app-hud-card>
+          </div>
+        </div>
+
+        <!-- Barra Flotante Cyberpunk de Acción y Combate -->
+        <div class="combat-action-bar">
+          <!-- Notificación / Feedback de Combate -->
+          <div class="combat-status-pill" *ngIf="combatNotification">
+            <span class="pulse-dot"></span>
+            {{ combatNotification }}
+          </div>
+
+          <!-- Controles de Habilidades y Targeting -->
+          <div class="action-buttons-group">
+            <div class="target-chip" [class.has-target]="selectedTargetPlayer">
+              <span class="target-icon">🎯</span>
+              <span class="target-text">
+                {{ selectedTargetPlayer ? ('OBJETIVO: ' + selectedTargetPlayer.nickname) : 'CLIC EN UN DRON PARA APUNTAR' }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="action-btn attack-btn"
+              [disabled]="!selectedTargetPlayer || !hudTopLeft.hasAttackCharge"
+              (click)="executeAttack()"
+              title="Disparar ataque (requiere carga de Attack vía cajita '?')"
+            >
+              <span class="btn-icon">⚔️</span>
+              <span class="btn-label">ATACAR</span>
+            </button>
+
+            <button
+              type="button"
+              class="action-btn shield-btn"
+              [disabled]="!canUseSpecial || hudTopLeft.hasShield"
+              (click)="activateShield()"
+              title="Activar Escudo (requiere PE >= 100 o Racha >= 4)"
+            >
+              <span class="btn-icon">🛡️</span>
+              <span class="btn-label">ESCUDO</span>
+            </button>
+
+            <button
+              type="button"
+              class="action-btn boost-btn"
+              [disabled]="!canUseSpecial || hudTopLeft.hasBoost"
+              (click)="activateBoost()"
+              title="Activar Boost +50% velocidad (requiere PE >= 100 o Racha >= 4)"
+            >
+              <span class="btn-icon">⚡</span>
+              <span class="btn-label">BOOST</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel Derecho: Trivia Continua y Preguntas de IA (~30%) -->
+    <section class="trivia-section tech-border" id="trivia-panel">
+      <div class="section-tag top-left">PANEL DE CONTROL // TRIVIA IA</div>
+      
+      <!-- Panel de Trivia Interactivo -->
+      <div class="trivia-viewport-container" id="trivia-viewport">
+        <app-trivia-panel
+          [question]="currentQuestion"
+          [isWaiting]="isWaitingAnswer"
+          [isBoxQuestion]="isBoxQuestionActive"
+          [lastResult]="lastTriviaResult"
+          (answerSubmitted)="handleAnswerSubmitted($event)"
+        ></app-trivia-panel>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal / Overlay Cyberpunk de Fin de Partida y Victoria (Regla R7) -->
+  <div class="game-over-overlay" *ngIf="roomState === 'FINISHED' && isGameOverModalOpen">
+    <div class="game-over-modal tech-border">
+      <div class="section-tag top-center">ARENA FINALIZADA // REGLA R7</div>
+
+      <div class="game-over-header" [class.victory]="isLocalWinner" [class.defeat]="!isLocalWinner">
+        <div class="trophy-badge">{{ isLocalWinner ? '🏆' : '🏁' }}</div>
+        <h2 class="game-over-title">
+          {{ isLocalWinner ? '¡VICTORIA ROYALE!' : 'PARTIDA FINALIZADA' }}
+        </h2>
+        <p class="game-over-subtitle">
+          {{ isLocalWinner ? 'Eres el último dron en pie. ¡Dominaste la arena de trivia 3D!' : ('Campeón de la arena: ' + (gameOverData?.winnerNickname || 'Desconocido')) }}
+        </p>
+      </div>
+
+      <!-- Podio y Tabla de Clasificación Final -->
+      <div class="leaderboard-section">
+        <div class="leaderboard-title">CLASIFICACIÓN FINAL // PUNTAJES GLOBALES</div>
+        <div class="leaderboard-table">
+          <div class="table-header">
+            <span class="col-rank">POS</span>
+            <span class="col-player">DRON</span>
+            <span class="col-score">PUNTAJE</span>
+            <span class="col-hp">VIDA</span>
+            <span class="col-status">ESTADO</span>
+          </div>
+
+          <div
+            class="table-row"
+            *ngFor="let item of finalLeaderboard; let idx = index"
+            [class.winner-row]="item.isWinner"
+            [class.self-row]="item.isSelf"
+          >
+            <span class="col-rank">
+              <span class="rank-badge" [class.gold]="idx === 0" [class.silver]="idx === 1" [class.bronze]="idx === 2">
+                {{ idx === 0 ? '🥇 1º' : (idx === 1 ? '🥈 2º' : (idx === 2 ? '🥉 3º' : (idx + 1) + 'º')) }}
+              </span>
+            </span>
+            <span class="col-player">
+              <strong>{{ item.nickname }}</strong>
+              <span class="you-tag" *ngIf="item.isSelf">(Tú)</span>
+            </span>
+            <span class="col-score">
+              <span class="score-pill">⚡ {{ item.puntaje }} PTS</span>
+            </span>
+            <span class="col-hp">{{ item.vida }}/100 HP</span>
+            <span class="col-status">
+              <span class="status-tag" [class.alive]="item.isAlive" [class.eliminated]="!item.isAlive">
+                {{ item.isWinner ? '🏆 CAMPEÓN' : (item.isAlive ? 'SOBREVIVIENTE' : '💀 ELIMINADO') }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen y Metadatos de la Partida -->
+      <div class="game-summary-row">
+        <div class="summary-pill">
+          <span class="summary-label">TEMA:</span>
+          <span class="summary-value">{{ techTopic }}</span>
+        </div>
+        <div class="summary-pill">
+          <span class="summary-label">SALA:</span>
+          <span class="summary-value">{{ roomCode }}</span>
+        </div>
+        <div class="summary-pill">
+          <span class="summary-label">TU PUNTAJE:</span>
+          <span class="summary-value highlight">⚡ {{ hudTopLeft.puntaje }} PTS</span>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="game-over-actions">
+        <button type="button" class="modal-btn action-restart" (click)="restartGame()">
+          🔄 JUGAR OTRA PARTIDA
+        </button>
+        <button type="button" class="modal-btn action-dismiss" (click)="closeGameOverModal()">
+          👁️ OBSERVAR ARENA 3D
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

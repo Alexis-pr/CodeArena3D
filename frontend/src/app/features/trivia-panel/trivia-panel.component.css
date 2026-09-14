@@ -1,0 +1,338 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.trivia-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 14px;
+  gap: 10px;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Banner de Cajita ? */
+.box-question-banner {
+  background: linear-gradient(90deg, rgba(255, 183, 3, 0.25), rgba(255, 145, 0, 0.35));
+  border: 1px solid var(--color-amber);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-hud);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 183, 3, 0.8);
+  animation: pulse-glow 1.5s infinite alternate;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-glow {
+  from { box-shadow: 0 0 5px rgba(255, 183, 3, 0.3); }
+  to { box-shadow: 0 0 15px rgba(255, 183, 3, 0.7); }
+}
+
+/* Banner de Feedback de Resultado */
+.result-feedback-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: var(--font-hud);
+  font-size: 0.74rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  animation: fadeIn 0.2s ease-in;
+}
+
+.result-feedback-banner.success {
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid var(--bar-hp);
+  color: var(--bar-hp);
+}
+
+.result-feedback-banner.error {
+  background: rgba(255, 51, 102, 0.15);
+  border: 1px solid var(--bar-special);
+  color: #ff3366;
+}
+
+.pe-tag {
+  font-family: var(--font-code);
+  font-weight: 800;
+}
+
+.racha-tag {
+  color: var(--color-amber);
+}
+
+/* Cabecera del Panel */
+.trivia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  flex-shrink: 0;
+}
+
+.difficulty-tag {
+  font-family: var(--font-hud);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.8px;
+}
+
+.difficulty-tag.facil {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--bar-hp);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.difficulty-tag.medio {
+  background: rgba(255, 183, 3, 0.15);
+  color: var(--color-amber);
+  border: 1px solid rgba(255, 183, 3, 0.3);
+}
+
+.difficulty-tag.dificil {
+  background: rgba(255, 42, 95, 0.15);
+  color: var(--bar-special);
+  border: 1px solid rgba(255, 42, 95, 0.3);
+}
+
+.skill-tag {
+  font-family: var(--font-hud);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.skill-tag strong {
+  color: var(--color-cyan);
+}
+
+/* Enunciado de la Pregunta */
+.question-statement-box {
+  flex: 1;
+  min-height: 70px;
+  background: rgba(7, 11, 19, 0.75);
+  border: 1px solid var(--border-tech);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.statement-label {
+  font-family: var(--font-hud);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-cyan-dim);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.statement-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  word-break: break-word;
+}
+
+/* Sección de Acciones: Cuadrícula 2x2 + Botón Enviar */
+.trivia-action-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Cuadrícula de opciones: 2 columnas con minmax(0, 1fr) estricto para impedir desbordes */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Botón de opción individual */
+.option-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 8px 10px;
+  background: rgba(16, 24, 38, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  min-width: 0; /* CRÍTICO: permite que los elementos hijos se encojan dentro de la cuadrícula */
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.option-btn:hover:not(:disabled) {
+  border-color: var(--color-cyan-dim);
+  background: rgba(22, 34, 54, 0.95);
+}
+
+.option-btn.selected {
+  border-color: var(--color-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: inset 2px 0 0 var(--color-cyan);
+}
+
+/* Letra identificadora (A, B, C, D) */
+.option-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: var(--font-hud);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.option-btn.selected .option-letter {
+  background: var(--color-cyan);
+  color: #05070c;
+}
+
+/* Texto de la opción: Ajuste multilínea automático, sin cortes rotos */
+.option-text {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-family: var(--font-code);
+  color: #e2e8f0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Botón ENVIAR - RESPONDER */
+.submit-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--color-cyan);
+  color: #05070c;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-hud);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #22f4ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.submit-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Adaptabilidad para pantallas más angostas */
+@media (max-width: 960px) {
+  .options-grid {
+    grid-template-columns: 1fr; /* Pasa a 1 columna vertical limpia si el ancho se reduce */
+  }
+}
+
+/* Estado sin pregunta: Buscando cajita en la arena */
+.no-question-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 24px 16px;
+  background: rgba(7, 11, 19, 0.6);
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.radar-box-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  animation: pulse-icon 2s infinite ease-in-out;
+}
+
+@keyframes pulse-icon {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 10px #ffb703); }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.radar-status-tag {
+  font-family: var(--font-hud);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--color-amber);
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.no-question-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 0.8px;
+}
+
+.no-question-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  max-width: 260px;
+  margin-bottom: 14px;
+}
+
+.box-hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  font-family: var(--font-hud);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-cyan);
+}

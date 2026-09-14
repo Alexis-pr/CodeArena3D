@@ -1,0 +1,91 @@
+<div class="trivia-container" *ngIf="question; else noQuestionTpl">
+  <!-- Banner especial cuando se responde pregunta de la cajita "?" -->
+  <div class="box-question-banner" *ngIf="isBoxQuestion">
+    🎁 ¡CAJITA "?" CAPTURADA! ACIERTA PARA OBTENER CARGA DE ATAQUE
+  </div>
+
+  <!-- Toast / Banner de feedback tras responder -->
+  <div
+    class="result-feedback-banner"
+    *ngIf="lastResult"
+    [class.success]="lastResult.isCorrect"
+    [class.error]="!lastResult.isCorrect"
+  >
+    <span class="feedback-text">{{ lastResult.isCorrect ? '✓ ¡RESPUESTA CORRECTA!' : '✗ INCORRECTO' }}</span>
+    <span class="pe-tag">{{ lastResult.peGainedOrLost >= 0 ? '+' : '' }}{{ lastResult.peGainedOrLost }} PE</span>
+    <span class="racha-tag" *ngIf="lastResult.racha > 0">🔥 Racha {{ lastResult.racha }}</span>
+  </div>
+
+  <!-- Cabecera de la Pregunta: Dificultad y Habilidad Vinculada -->
+  <div class="trivia-header">
+    <div class="difficulty-tag" [ngClass]="question.dificultad.toLowerCase()">
+      {{ question.dificultad }}
+    </div>
+    <div class="skill-tag" *ngIf="question.habilidadAsociada">
+      HABILIDAD: <strong>{{ question.habilidadAsociada }}</strong>
+    </div>
+  </div>
+
+  <!-- Caja del Enunciado (Gran recuadro central según boceto) -->
+  <div class="question-statement-box">
+    <div class="statement-label">PREGUNTA ACTIVA</div>
+    <p class="statement-text">{{ question.enunciado }}</p>
+  </div>
+
+  <!-- Contenedor Inferior: Opciones 2x2 y Botón Enviar -->
+  <div class="trivia-action-section">
+    <!-- Cuadrícula 2x2 para las Opciones A, B, C, D (Boceto PRIMER BORRADOR) -->
+    <div class="options-grid">
+      <button
+        *ngFor="let opt of question.opciones"
+        type="button"
+        class="option-btn"
+        [class.selected]="selectedOption === opt.id"
+        [disabled]="isWaiting"
+        (click)="selectOption(opt.id)"
+      >
+        <span class="option-letter">{{ opt.id }}</span>
+        <span class="option-text">{{ opt.texto }}</span>
+      </button>
+    </div>
+
+    <!-- Botón ENVIAR - RESPONDER a todo el ancho inferior -->
+    <button
+      type="button"
+      class="submit-btn"
+      [disabled]="!selectedOption || isWaiting"
+      (click)="submitAnswer()"
+    >
+      {{ isWaiting ? 'VALIDANDO CON SERVIDOR...' : 'ENVIAR - RESPONDER' }}
+    </button>
+  </div>
+</div>
+
+<!-- Template cuando no hay pregunta activa (Esperando a que el jugador toque la cajita "?") -->
+<ng-template #noQuestionTpl>
+  <div class="no-question-box">
+    <!-- Feedback de la última respuesta resuelta si existe -->
+    <div
+      class="result-feedback-banner"
+      *ngIf="lastResult"
+      [class.success]="lastResult.isCorrect"
+      [class.error]="!lastResult.isCorrect"
+      style="margin-bottom: 12px; width: 100%;"
+    >
+      <span class="feedback-text">{{ lastResult.isCorrect ? '✓ ¡ACIERTO EN CAJITA!' : '✗ FALLO' }}</span>
+      <span class="pe-tag">{{ lastResult.peGainedOrLost >= 0 ? '+' : '' }}{{ lastResult.peGainedOrLost }} PE</span>
+      <span class="racha-tag" *ngIf="lastResult.racha > 0">🔥 {{ lastResult.racha }}</span>
+    </div>
+
+    <div class="radar-box-icon">❓</div>
+    <div class="radar-status-tag">RADAR // STANDBY</div>
+    <p class="no-question-title">BUSCA LA CAJA '?' EN LA ARENA</p>
+    <p class="no-question-desc">
+      Vuela tu dron y toca la cajita dorada flotante en el octágono para desbloquear tu pregunta y cargar Attack, PE y Racha.
+    </p>
+    <div class="box-hint-badge">
+      <span class="pulse-dot"></span>
+      Cooldown de reaparición: 15s
+    </div>
+  </div>
+</ng-template>

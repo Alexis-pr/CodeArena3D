@@ -1,0 +1,54 @@
+<div class="hud-box" [class.is-self]="player.isCurrentPlayer" [class.is-eliminated]="player.vida === 0">
+  <!-- Cabecera del Jugador -->
+  <div class="hud-header">
+    <div class="player-identity">
+      <span class="player-indicator" [style.background-color]="player.color"></span>
+      <span class="player-name">{{ player.nickname }}</span>
+      <span *ngIf="player.isCurrentPlayer" class="self-tag">TÚ</span>
+      <span *ngIf="player.hasShield" class="status-icon" title="Escudo activo">🛡️</span>
+      <span *ngIf="player.hasAttackCharge" class="status-icon" title="Ataque disponible">⚔️</span>
+    </div>
+    <div class="header-badges">
+      <span class="score-badge" title="Puntaje acumulado">⚡{{ player.puntaje || 0 }}</span>
+      <span class="streak-badge" *ngIf="player.rachaCorrectas > 0" title="Racha de respuestas correctas">
+        🔥{{ player.rachaCorrectas }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Barra 1: Vida (Verde) -->
+  <div class="stat-row">
+    <div class="stat-labels">
+      <span class="stat-name">VIDA</span>
+      <span class="stat-value" [class.eliminated-text]="player.vida === 0">
+        {{ player.vida === 0 ? 'ELIMINADO' : player.vida }}
+      </span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-hp" [style.width.%]="player.vida"></div>
+    </div>
+  </div>
+
+  <!-- Barra 2: Mana (Celeste) -->
+  <div class="stat-row">
+    <div class="stat-labels">
+      <span class="stat-name">MANA</span>
+      <span class="stat-value">{{ player.mana }}</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-mana" [style.width.%]="player.mana"></div>
+    </div>
+  </div>
+
+  <!-- Barra 3: Poder Especial (Roja) -->
+  <div class="stat-row">
+    <div class="stat-labels">
+      <span class="stat-name">PODER</span>
+      <span class="stat-value">{{ player.poderEspecial }}</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill bar-special" [style.width.%]="player.poderEspecial"></div>
+    </div>
+  </div>
+</div>
+

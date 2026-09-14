@@ -1,0 +1,124 @@
+/* ==========================================================================
+   CodeArena 3D — Global Design System & Variables
+   Theme: Cyberpunk Neon Arena / Sci-Fi HUD
+   ========================================================================== */
+
+:root {
+  /* Paleta Base */
+  --bg-deep: #05070c;
+  --bg-surface: #0a0f18;
+  --bg-surface-elevated: #101826;
+  --bg-panel: rgba(13, 20, 34, 0.85);
+  --bg-panel-glow: rgba(0, 229, 255, 0.04);
+
+  /* Acentos Principales */
+  --color-cyan: #00f0ff;
+  --color-cyan-dim: #0099aa;
+  --color-purple: #9d4edd;
+  --color-amber: #ffb703;
+
+  /* Barras Obligatorias del Juego */
+  --bar-hp: #00ff88;         /* Verde — Vida */
+  --bar-hp-glow: rgba(0, 255, 136, 0.45);
+  --bar-mana: #00e5ff;       /* Celeste — Mana */
+  --bar-mana-glow: rgba(0, 229, 255, 0.45);
+  --bar-special: #ff2a5f;    /* Roja — Poder Especial */
+  --bar-special-glow: rgba(255, 42, 95, 0.55);
+
+  /* Textos y Bordes */
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b9bb4;
+  --text-muted: #53627c;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-tech: rgba(0, 240, 255, 0.25);
+  --border-tech-bright: rgba(0, 240, 255, 0.6);
+
+  /* Tipografías */
+  --font-display: 'Orbitron', -apple-system, sans-serif;
+  --font-hud: 'Rajdhani', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+
+  /* Sombras y Glow */
+  --glow-cyan-sm: 0 0 10px rgba(0, 240, 255, 0.35);
+  --glow-cyan-md: 0 0 20px rgba(0, 240, 255, 0.25);
+  --glow-purple: 0 0 20px rgba(157, 78, 221, 0.3);
+}
+
+/* Reset y Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fondo con efecto cuadrícula sutil y viñeta */
+body {
+  background-image: 
+    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(0, 153, 170, 0.15), transparent 70%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyan-dim);
+}
+
+/* Clases de utilidad estilo Tech / HUD */
+.tech-border {
+  border: 1px solid var(--border-tech);
+  position: relative;
+  background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+}
+
+.tech-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid var(--color-cyan);
+  border-left: 2px solid var(--color-cyan);
+}
+
+.tech-border::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid var(--color-cyan);
+  border-right: 2px solid var(--color-cyan);
+}
+
+.glow-text-cyan {
+  color: var(--color-cyan);
+  text-shadow: var(--glow-cyan-sm);
+}
