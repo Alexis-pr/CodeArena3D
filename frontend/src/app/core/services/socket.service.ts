@@ -117,7 +117,11 @@ export class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log(`[SocketService] Conectado al servidor WebSocket: ${this.socket?.id}`);
+      console.log(`[SocketService] Conectado exitosamente al servidor WebSocket: ${this.socket?.id}`);
+    });
+
+    this.socket.on('connect_error', (error: any) => {
+      console.error(`[SocketService] Error de conexión WebSocket:`, error);
     });
 
     this.socket.on('disconnect', (reason) => {
