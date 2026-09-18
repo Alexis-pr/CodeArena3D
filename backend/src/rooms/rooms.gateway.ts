@@ -39,12 +39,8 @@ const getAllowedOrigins = (): string[] => {
 @WebSocketGateway({
   cors: {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      const allowedOrigins = getAllowedOrigins();
-      const normalizedOrigin = origin?.replace(/\/$/, '');
-      if (!origin || (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) || allowedOrigins.includes('*')) {
-        return callback(null, true);
-      }
-      return callback(null, false);
+      // Permitir cualquier origen que acceda a través de Nginx (IP directa de VPS, DuckDNS o localhost)
+      callback(null, true);
     },
     credentials: true,
   },

@@ -20,9 +20,9 @@ async function bootstrap() {
       )
     : defaultOrigins;
 
-  // Habilitar CORS dinámico (por defecto http://localhost:4200, ampliable vía FRONTEND_URL)
+  // Habilitar CORS dinámico y universal (soporta IP directa de VPS, DuckDNS y localhost)
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
