@@ -28,8 +28,11 @@ services:
     depends_on:
       - backend
     ports:
-      # Se expone en el puerto 8080 del host para evitar colisión con los puertos 80, 443 y 4200 ocupados en la VPS
+      # Se expone en el puerto 8080 (HTTP) y 8443 (HTTPS) para evitar colisión con puertos ocupados
       - "8080:80"
+      - "8443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - codearena3d_net
 
