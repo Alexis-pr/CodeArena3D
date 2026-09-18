@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias completas para compilación
-RUN npm ci
+RUN npm install
 
 # Copiar código fuente y configuración de Angular CLI
 COPY angular.json tsconfig*.json ./
