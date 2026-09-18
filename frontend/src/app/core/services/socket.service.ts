@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable, Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface PlayerMovePayload {
   codigo: string;
@@ -70,7 +71,8 @@ export interface GameOverEvent {
 })
 export class SocketService {
   private socket: Socket | null = null;
-  private readonly serverUrl = 'http://localhost:3000';
+  private readonly serverUrl: string =
+    environment.serverUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 
   // Event subjects
   private playerJoinedSubject = new Subject<PlayerJoinedEvent>();
