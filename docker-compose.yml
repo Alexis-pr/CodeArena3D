@@ -1,0 +1,38 @@
+name: codearena3d
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codearena3d_backend
+    restart: unless-stopped
+    ports:
+      # Se expone en el puerto 3001 del host para evitar colisión con el puerto 3000 ocupado en la VPS
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://codearena3d.duckdns.org:8080}
+    networks:
+      - codearena3d_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: codearena3d_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      # Se expone en el puerto 8080 del host para evitar colisión con los puertos 80, 443 y 4200 ocupados en la VPS
+      - "8080:80"
+    networks:
+      - codearena3d_net
+
+networks:
+  codearena3d_net:
+    driver: bridge

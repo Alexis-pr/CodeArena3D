@@ -9,7 +9,7 @@ CodeArena 3D es un videojuego interactivo web donde hasta **4 jugadores** compit
 ## 🚀 Arquitectura y Tecnologías
 
 - **Frontend:**
-  - [Angular 19+](https://angular.dev/) (Standalone Components, Signals, RxJS).
+  - [Angular 21](https://angular.dev/) (Standalone Components, Signals, RxJS).
   - [Three.js](https://threejs.org/) (Renderizado 3D de la arena, modelos de drones procedurales, luces dinámicas, animaciones de rotores e indicadores).
   - [Socket.IO Client](https://socket.io/) (Sincronización en tiempo real a 10 Hz con throttling de red).
   - CSS3 Glassmorphism y HUD cibernético.
@@ -24,7 +24,7 @@ CodeArena 3D es un videojuego interactivo web donde hasta **4 jugadores** compit
 
 ## 🛠️ Requisitos Previos
 
-- [Node.js](https://nodejs.org/) (versión 18 o 20 LTS recomendada).
+- [Node.js](https://nodejs.org/) (versión 20 LTS o superior recomendada, compatible con v20, v22 y v24).
 - [npm](https://www.npmjs.com/) (incluido con Node.js).
 - Una base de datos PostgreSQL (local o proyecto en Supabase).
 - *(Opcional)* API Key de Google Gemini para generación de preguntas con IA.
@@ -59,7 +59,9 @@ CodeArena 3D es un videojuego interactivo web donde hasta **4 jugadores** compit
 4. *(Opcional)* Ejecutar las migraciones iniciales de base de datos si es la primera vez:
    ```bash
    npm run migration:run
-   # o ejecutando el script schema.sql en tu cliente SQL de Supabase/PostgreSQL
+   # o alternativamente:
+   node database/run-migration.mjs
+   # o ejecutando el script database/schema.sql en tu cliente SQL de Supabase/PostgreSQL
    ```
 
 5. Inicia el servidor backend en modo desarrollo:
@@ -85,8 +87,14 @@ CodeArena 3D es un videojuego interactivo web donde hasta **4 jugadores** compit
 3. Inicia el servidor de desarrollo de Angular:
    ```bash
    npm start
+   # o alternativamente:
+   npm run dev
+   # o con npx:
+   npx ng serve
    ```
    El frontend estará accesible por defecto en `http://localhost:4200`.
+
+   > **Nota para Windows PowerShell:** Si ejecutas directamente `ng serve` y la terminal indica que `'ng' no se reconoce como comando`, usa `npm start` o `npx ng serve`, ya que ejecutan el binario local de Angular CLI incluido en las dependencias.
 
 ---
 
@@ -189,7 +197,7 @@ CodeArena 3D/
 │   │   └── main.ts           # Entrada principal del backend
 │   └── test/                 # Pruebas e2e y suites de sincronización WebSocket
 │
-├── frontend/                 # Aplicación cliente Angular 19
+├── frontend/                 # Aplicación cliente Angular 21
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/         # Modelos de datos y servicios (Sockets, Inputs)

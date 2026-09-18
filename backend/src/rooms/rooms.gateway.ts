@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -20,9 +23,29 @@ interface ClientMetadata {
   nickname: string;
 }
 
+const getAllowedOrigins = (): string[] => {
+  const defaultOrigins = ['http://localhost:4200', 'http://127.0.0.1:4200'];
+  const frontendUrl = process.env.FRONTEND_URL?.trim();
+  if (!frontendUrl) {
+    return defaultOrigins;
+  }
+  const customOrigins = frontendUrl
+    .split(',')
+    .map((url) => url.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+  return Array.from(new Set([...defaultOrigins, ...customOrigins]));
+};
+
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      const allowedOrigins = getAllowedOrigins();
+      const normalizedOrigin = origin?.replace(/\/$/, '');
+      if (!origin || (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
   },
 })
