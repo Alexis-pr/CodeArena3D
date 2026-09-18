@@ -4,6 +4,7 @@ import { Question } from '../questions/interfaces/question.interface';
 import { Player } from '../players/entities/player.entity';
 import { Room } from '../rooms/entities/room.entity';
 import { QuestionsService } from '../questions/questions.service';
+import { GAME_CONFIG } from '../config/game-config';
 
 export interface PlayerGameState {
   playerId: string;
@@ -140,12 +141,12 @@ export class GameSessionService {
         rachaCorrectas: initialStats?.rachaCorrectas ?? 0,
         poderEspecial: initialStats?.poderEspecial ?? 0,
         puntaje: initialStats?.puntaje ?? 0,
-        vida: initialStats?.vida ?? 100,
-        mana: 100,
+        vida: initialStats?.vida ?? GAME_CONFIG.PLAYER.MAX_HP,
+        mana: GAME_CONFIG.PLAYER.INITIAL_MANA,
         hasShield: false,
         hasAttackCharge: false,
         isFrozen: false,
-        isAlive: (initialStats?.vida ?? 100) > 0,
+        isAlive: (initialStats?.vida ?? GAME_CONFIG.PLAYER.MAX_HP) > 0,
         speedMultiplier: 1.0,
         boostExpiresAt: 0,
       });
@@ -211,16 +212,15 @@ export class GameSessionService {
     if (isCorrect) {
       // 1. ACIERTO: Racha incrementa y el PE escala
       playerState.rachaCorrectas += 1;
-      playerState.puntaje += 10; // Fórmula oficial: +10 puntos por respuesta correcta
+      playerState.puntaje += GAME_CONFIG.TRIVIA.POINTS_PER_CORRECT;
 
-      // Escalado definido para Sesión 4:
-      // Racha 1: +15 PE, Racha 2: +18 PE, Racha 3: +21 PE, Racha 4+: +25 PE
-      if (playerState.rachaCorrectas === 1) peDelta = 15;
-      else if (playerState.rachaCorrectas === 2) peDelta = 18;
-      else if (playerState.rachaCorrectas === 3) peDelta = 21;
-      else peDelta = 25;
+      // Escalado definido según racha
+      if (playerState.rachaCorrectas === 1) peDelta = GAME_CONFIG.TRIVIA.PE_GAIN_BY_STREAK.STREAK_1;
+      else if (playerState.rachaCorrectas === 2) peDelta = GAME_CONFIG.TRIVIA.PE_GAIN_BY_STREAK.STREAK_2;
+      else if (playerState.rachaCorrectas === 3) peDelta = GAME_CONFIG.TRIVIA.PE_GAIN_BY_STREAK.STREAK_3;
+      else peDelta = GAME_CONFIG.TRIVIA.PE_GAIN_BY_STREAK.STREAK_4_PLUS;
 
-      playerState.poderEspecial = Math.min(100, playerState.poderEspecial + peDelta);
+      playerState.poderEspecial = Math.min(GAME_CONFIG.PLAYER.MAX_PE, playerState.poderEspecial + peDelta);
 
       // ADICIONAL CAJITA: Si acertó la pregunta de la cajita "?", obtiene carga de Attack
       if (isBoxQuestion) {
@@ -228,24 +228,26 @@ export class GameSessionService {
         this.logger.log(`¡Jugador [${playerState.nickname}] (${playerId}) obtuvo carga de ATTACK vía cajita "?"!`);
       }
     } else {
-      // 2. FALLO: Racha a 0 y -18 PE (piso en 0)
+      // 2. FALLO: Racha a 0 y pérdida de PE
       playerState.rachaCorrectas = 0;
-      peDelta = -18;
-      playerState.poderEspecial = Math.max(0, playerState.poderEspecial - 18);
+      peDelta = -GAME_CONFIG.TRIVIA.PE_LOSS_ON_FAIL;
+      playerState.poderEspecial = Math.max(0, playerState.poderEspecial - GAME_CONFIG.TRIVIA.PE_LOSS_ON_FAIL);
     }
 
     // Descongelar al jugador tras resolver su respuesta
     playerState.isFrozen = false;
 
-    // Si era pregunta de cajita, se consume y se inicia cooldown de 15s
+    // Si era pregunta de cajita, se consume y se inicia cooldown configurado
     if (isBoxQuestion && roomState.activeBox) {
       roomState.activeBox = null;
-      roomState.boxCooldownUntil = Date.now() + 15000;
-      this.logger.log(`Cajita "?" consumida en sala [${normalizedCode}]. Cooldown de 15s iniciado.`);
+      roomState.boxCooldownUntil = Date.now() + GAME_CONFIG.BOX.COOLDOWN_MS;
+      this.logger.log(`Cajita "?" consumida en sala [${normalizedCode}]. Cooldown de ${GAME_CONFIG.BOX.COOLDOWN_SECONDS}s iniciado.`);
     }
 
-    // 3. Regla R10: Desbloqueo de habilidades especiales
-    const canUnlockSpecial = playerState.poderEspecial >= 100 || playerState.rachaCorrectas >= 4;
+    // 3. Desbloqueo de habilidades especiales
+    const canUnlockSpecial =
+      playerState.poderEspecial >= GAME_CONFIG.SKILLS.PE_REQUIRED_TO_UNLOCK ||
+      playerState.rachaCorrectas >= GAME_CONFIG.SKILLS.STREAK_REQUIRED_TO_UNLOCK;
 
     // 4. PERSISTENCIA OBLIGATORIA EN POSTGRESQL (SUPABASE):
     // La memoria es la copia rápida, pero Postgres es la fuente de verdad persistente
@@ -461,10 +463,10 @@ export class GameSessionService {
    * 0-24% = 5 DMG, 25-49% = 10 DMG, 50-74% = 15 DMG, 75-100% = 20 DMG
    */
   calculateAttackDamage(pe: number): number {
-    if (pe < 25) return 5;
-    if (pe < 50) return 10;
-    if (pe < 75) return 15;
-    return 20;
+    if (pe < 25) return GAME_CONFIG.COMBAT.DAMAGE_BY_PE_TIER.TIER_1_LOW;
+    if (pe < 50) return GAME_CONFIG.COMBAT.DAMAGE_BY_PE_TIER.TIER_2_MED;
+    if (pe < 75) return GAME_CONFIG.COMBAT.DAMAGE_BY_PE_TIER.TIER_3_HIGH;
+    return GAME_CONFIG.COMBAT.DAMAGE_BY_PE_TIER.TIER_4_MAX;
   }
 
   /**
@@ -671,11 +673,13 @@ export class GameSessionService {
       return { success: false, message: 'Jugador eliminado no puede activar escudo.' };
     }
 
-    const canUnlock = playerState.poderEspecial >= 100 || playerState.rachaCorrectas >= 4;
+    const canUnlock =
+      playerState.poderEspecial >= GAME_CONFIG.SKILLS.PE_REQUIRED_TO_UNLOCK ||
+      playerState.rachaCorrectas >= GAME_CONFIG.SKILLS.STREAK_REQUIRED_TO_UNLOCK;
     if (!canUnlock) {
       return {
         success: false,
-        message: `Requisitos no cumplidos (100 PE o Racha 4). Tienes PE=${playerState.poderEspecial}, Racha=${playerState.rachaCorrectas}`,
+        message: `Requisitos no cumplidos (${GAME_CONFIG.SKILLS.PE_REQUIRED_TO_UNLOCK} PE o Racha ${GAME_CONFIG.SKILLS.STREAK_REQUIRED_TO_UNLOCK}). Tienes PE=${playerState.poderEspecial}, Racha=${playerState.rachaCorrectas}`,
       };
     }
 
@@ -727,25 +731,27 @@ export class GameSessionService {
       return { success: false, message: 'Jugador eliminado no puede activar boost.' };
     }
 
-    const canUnlock = playerState.poderEspecial >= 100 || playerState.rachaCorrectas >= 4;
+    const canUnlock =
+      playerState.poderEspecial >= GAME_CONFIG.SKILLS.PE_REQUIRED_TO_UNLOCK ||
+      playerState.rachaCorrectas >= GAME_CONFIG.SKILLS.STREAK_REQUIRED_TO_UNLOCK;
     if (!canUnlock) {
       return {
         success: false,
-        message: `Requisitos no cumplidos (100 PE o Racha 4). Tienes PE=${playerState.poderEspecial}, Racha=${playerState.rachaCorrectas}`,
+        message: `Requisitos no cumplidos (${GAME_CONFIG.SKILLS.PE_REQUIRED_TO_UNLOCK} PE o Racha ${GAME_CONFIG.SKILLS.STREAK_REQUIRED_TO_UNLOCK}). Tienes PE=${playerState.poderEspecial}, Racha=${playerState.rachaCorrectas}`,
       };
     }
 
-    playerState.speedMultiplier = 1.5;
-    playerState.boostExpiresAt = Date.now() + 5000;
-    playerState.poderEspecial = 0; // Regla R10: reset a 0
+    playerState.speedMultiplier = GAME_CONFIG.SKILLS.BOOST_SPEED_MULTIPLIER;
+    playerState.boostExpiresAt = Date.now() + GAME_CONFIG.SKILLS.BOOST_DURATION_MS;
+    playerState.poderEspecial = 0; // reset a 0
 
-    // Resetear multiplicador automáticamente al expirar los 5 segundos
+    // Resetear multiplicador automáticamente al expirar la duración configurada
     setTimeout(() => {
-      if (playerState.speedMultiplier === 1.5) {
+      if (playerState.speedMultiplier === GAME_CONFIG.SKILLS.BOOST_SPEED_MULTIPLIER) {
         playerState.speedMultiplier = 1.0;
         this.logger.log(`Boost finalizado para [${playerState.nickname}]. Velocidad normal restaurada.`);
       }
-    }, 5000);
+    }, GAME_CONFIG.SKILLS.BOOST_DURATION_MS);
 
     if (this.isUuid(playerId)) {
       try {

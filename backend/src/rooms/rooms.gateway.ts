@@ -16,6 +16,7 @@ import { RoomsService } from './rooms.service';
 import { DataSource } from 'typeorm';
 import { Player } from '../players/entities/player.entity';
 import { GameSessionService } from '../game/game-session.service';
+import { GAME_CONFIG } from '../config/game-config';
 
 interface ClientMetadata {
   codigo: string;
@@ -274,21 +275,21 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         isFrozen: result.isFrozen,
       });
 
-      // Si era pregunta de cajita, notificar que la cajita desaparece e inicia cooldown de 15s
+      // Si era pregunta de cajita, notificar que la cajita desaparece e inicia cooldown configurado
       if (payload.isBoxQuestion) {
         this.server.to(codigo).emit('boxDespawned', {
           codigo,
-          cooldownSeconds: 15,
+          cooldownSeconds: GAME_CONFIG.BOX.COOLDOWN_SECONDS,
         });
 
-        // Programar reaparición automática tras 15 segundos
+        // Programar reaparición automática tras el cooldown configurado
         setTimeout(() => {
           const newBox = this.gameSessionService.spawnBox(codigo);
           if (newBox) {
             this.server.to(codigo).emit('boxSpawned', newBox);
-            this.logger.log(`Cajita "?" reapareció en sala [${codigo}] tras 15s de cooldown.`);
+            this.logger.log(`Cajita "?" reapareció en sala [${codigo}] tras ${GAME_CONFIG.BOX.COOLDOWN_SECONDS}s de cooldown.`);
           }
-        }, 15000);
+        }, GAME_CONFIG.BOX.COOLDOWN_MS);
       }
 
       this.logger.log(
